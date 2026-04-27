@@ -695,13 +695,26 @@ function ReceiptSelector({ onSelect, pendingCount, online, syncing, onSync }) {
         </div>
       </div>
 
-      <footer className="px-5 pb-8 max-w-xl mx-auto w-full">
+      <footer className="px-5 pb-8 max-w-xl mx-auto w-full flex flex-col items-center gap-4">
         <p
           className="text-center text-[10px] text-stone-400 tracking-wider"
           style={{ fontFamily: "'JetBrains Mono', monospace" }}
         >
           DIGITAL CAPACITY BUILDING PROGRAM · 2026
         </p>
+        <button
+          onClick={() => {
+            if (window.confirm('기기에 저장된 모든 수령 내역과 대기열을 초기화하시겠습니까?\n(서버의 데이터는 유지됩니다)')) {
+              localStorage.removeItem(LS_KEYS.records);
+              localStorage.removeItem(LS_KEYS.signedNames);
+              localStorage.removeItem(LS_KEYS.pendingQueue);
+              window.location.reload();
+            }
+          }}
+          className="text-[11px] text-stone-400 underline decoration-stone-300 underline-offset-4 hover:text-stone-600 transition-colors opacity-50 hover:opacity-100"
+        >
+          앱 데이터 초기화
+        </button>
       </footer>
     </div>
   );
@@ -775,40 +788,12 @@ function ReceiptDetail({ config, onBack, online, onSync, syncing, pendingCount, 
       synced: false,
     };
 
-    // 1) 즉시 localStorage에 저장
+    // 1) 즉시 localStorage에 본인 기록 저장
     saveLocalRecord(config.id, selectedPerson.name, localRecord);
+
+    // 2) 속도 향상을 위해 즉시 대기열(Queue)에 넣고 통과 (백그라운드 동기화에 위임)
+    addToPendingQueue(payload);
     onRecordSubmit?.();
-
-    // 2) 온라인이면 즉시 전송 시도
-    let synced = false;
-    let syncError = null;
-
-    if (online && APPS_SCRIPT_URL) {
-      try {
-        const result = await postReceipt(payload);
-        if (result.ok) {
-          synced = true;
-          // 로컬에 동기화 표시
-          saveLocalRecord(config.id, selectedPerson.name, { ...localRecord, synced: true });
-        } else if (result.error === 'already_signed') {
-          // 서버에 이미 있으면 동기화 성공으로 처리
-          synced = true;
-          saveLocalRecord(config.id, selectedPerson.name, { ...localRecord, synced: true });
-        } else {
-          syncError = result.error || '제출 실패';
-        }
-      } catch (e) {
-        syncError = 'network';
-      }
-    } else {
-      syncError = 'offline';
-    }
-
-    // 3) 동기화 실패 시 큐에 추가
-    if (!synced) {
-      addToPendingQueue(payload);
-      onRecordSubmit?.();
-    }
 
     setSubmitting(false);
     setSigning(false);
@@ -818,8 +803,8 @@ function ReceiptDetail({ config, onBack, online, onSync, syncing, pendingCount, 
       itemLabel: itemDef.label,
       signature: signatureData,
       signedAt: localTimestamp,
-      synced,
-      syncError,
+      synced: false,
+      syncError: null,
     });
 
     // 명단 갱신
