@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Noto Serif KR', system-ui, -apple-system, sans-serif;
+  background-color: #fafaf9;
+}
+body { overscroll-behavior-y: none; }
+* { -webkit-tap-highlight-color: transparent; }
+input, textarea, select, button { font-size: 16px; }

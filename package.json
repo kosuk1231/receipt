@@ -1,0 +1,24 @@
+{
+  "name": "yeolmae-receipt",
+  "private": true,
+  "version": "2.0.0",
+  "type": "module",
+  "description": "열매똑똑 해커톤 상품 수령증 / 성과공유 답례품 수령증 (Google Sheets 연동)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "lucide-react": "^0.383.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "vite": "^5.3.1"
+  }
+}
