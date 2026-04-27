@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 
 // ============ Config ============
-const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || '';
+const APPS_SCRIPT_URL = import.meta.env.VITE_APPS_SCRIPT_URL || 'https://script.google.com/macros/s/AKfycbwEDPrUIZ5Cv-CFe8BIOXh14IdKRt_JXnmOvSidaFk7q-Y3j2CRa3qd_E930hwTmHQmlw/exec';
 
 // localStorage 키
 const LS_KEYS = {
