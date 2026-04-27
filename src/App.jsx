@@ -788,12 +788,40 @@ function ReceiptDetail({ config, onBack, online, onSync, syncing, pendingCount, 
       synced: false,
     };
 
-    // 1) 즉시 localStorage에 본인 기록 저장
+    // 1) 즉시 localStorage에 저장
     saveLocalRecord(config.id, selectedPerson.name, localRecord);
-
-    // 2) 속도 향상을 위해 즉시 대기열(Queue)에 넣고 통과 (백그라운드 동기화에 위임)
-    addToPendingQueue(payload);
     onRecordSubmit?.();
+
+    // 2) 온라인이면 즉시 전송 시도
+    let synced = false;
+    let syncError = null;
+
+    if (online && APPS_SCRIPT_URL) {
+      try {
+        const result = await postReceipt(payload);
+        if (result.ok) {
+          synced = true;
+          // 로컬에 동기화 표시
+          saveLocalRecord(config.id, selectedPerson.name, { ...localRecord, synced: true });
+        } else if (result.error === 'already_signed') {
+          // 서버에 이미 있으면 동기화 성공으로 처리
+          synced = true;
+          saveLocalRecord(config.id, selectedPerson.name, { ...localRecord, synced: true });
+        } else {
+          syncError = result.error || '제출 실패';
+        }
+      } catch (e) {
+        syncError = 'network';
+      }
+    } else {
+      syncError = 'offline';
+    }
+
+    // 3) 동기화 실패 시 큐에 추가
+    if (!synced) {
+      addToPendingQueue(payload);
+      onRecordSubmit?.();
+    }
 
     setSubmitting(false);
     setSigning(false);
@@ -803,8 +831,8 @@ function ReceiptDetail({ config, onBack, online, onSync, syncing, pendingCount, 
       itemLabel: itemDef.label,
       signature: signatureData,
       signedAt: localTimestamp,
-      synced: false,
-      syncError: null,
+      synced,
+      syncError,
     });
 
     // 명단 갱신
